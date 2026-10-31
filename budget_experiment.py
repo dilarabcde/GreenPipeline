@@ -6,7 +6,7 @@ from decision_engine import load_carbon_data, schedule_job
 # Deneyeceğimiz görev başına bütçe sınırları ($)
 BUDGETS = [0.01, 0.05, 0.10, 0.25, 0.50, 2.00]
 
-jobs = pd.read_csv("data/jobs_stress.csv")
+jobs = pd.read_csv("data/jobs_stress_fargate.csv")
 carbon_data = load_carbon_data()
 
 results = []

@@ -1,0 +1,11 @@
+workload,image,run,duration_seconds,success
+small,greenpipeline-worker:v1,1,0.6773,True
+small,greenpipeline-worker:v1,2,0.4426,True
+small,greenpipeline-worker:v1,3,0.4131,True
+small,greenpipeline-worker:v1,4,0.343,True
+small,greenpipeline-worker:v1,5,0.3548,True
+large,greenpipeline-worker:v2,1,9.6678,True
+large,greenpipeline-worker:v2,2,9.6198,True
+large,greenpipeline-worker:v2,3,9.2153,True
+large,greenpipeline-worker:v2,4,8.9054,True
+large,greenpipeline-worker:v2,5,9.0128,True

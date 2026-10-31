@@ -9,7 +9,7 @@ from decision_engine import (
 from cost_model import calculate_total_cost
 
 # Aynı görevleri bütün yöntemlerde kullanacağız
-jobs = pd.read_csv("data/jobs_stress.csv")
+jobs = pd.read_csv("data/jobs_stress_fargate.csv")
 carbon_data = load_carbon_data()
 
 
