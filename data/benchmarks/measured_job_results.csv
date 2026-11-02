@@ -1,0 +1,3 @@
+job_id,image,simulated_region,estimated_seconds,actual_seconds,error_seconds,success
+101,greenpipeline-worker:v1,eu-north-1,0.8128,0.6565,-0.1562,True
+102,greenpipeline-worker:v2,eu-north-1,11.6014,9.0409,-2.5605,True

@@ -1,0 +1,3 @@
+job_id,image,workload,arrival_time,duration_min,deadline,cpu,memory_gb,data_size_gb,data_region,measured_max_seconds,duration_source
+101,greenpipeline-worker:v1,small,2025-08-21T19:23:00+00:00,0.013546,2025-08-21T19:28:00.812760+00:00,0.25,0.5,0.0,eu-central-1,0.6773,local_docker_benchmark
+102,greenpipeline-worker:v2,large,2025-02-20T19:18:00+00:00,0.193356,2025-02-20T19:23:11.601360+00:00,0.25,0.5,0.0,eu-central-1,9.6678,local_docker_benchmark

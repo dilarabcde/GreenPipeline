@@ -1,0 +1,9 @@
+{
+    "job_id": 1,
+    "image": "greenpipeline-worker:v2",
+    "simulated_region": "eu-central-1",
+    "simulated_start": "2025-08-21 19:23:00+00:00",
+    "local_started_at": "2026-11-02T08:12:51.490317+00:00",
+    "actual_runtime_seconds": 10.1386,
+    "success": true
+}
