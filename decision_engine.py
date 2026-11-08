@@ -14,7 +14,8 @@ CARBON_COLUMN = "Carbon intensity gCO₂eq/kWh (Life cycle)"
 
 CARBON_FILES = {
     "eu-central-1": "data/raw/snapshots_2026-02-10_DE-2025-hourly.csv",
-    "eu-north-1": "data/raw/snapshots_2026-02-10_SE-SE3-2025-hourly.csv"
+    "eu-north-1": "data/raw/snapshots_2026-02-10_SE-SE3-2025-hourly.csv",
+    "eu-west-1": "data/raw/snapshots_2026-02-10_IE-2025-hourly.csv"
 }
 
 
