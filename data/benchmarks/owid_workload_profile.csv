@@ -1,0 +1,2 @@
+workload,image,input_file,input_size_bytes,estimated_runtime_seconds,duration_min,prediction_method,measurement_source,training_samples,test_samples,test_successful
+owid_energy_processing,greenpipeline-external:v1,owid_energy.csv,9081888,0.8117,0.01352858333333334,P95,local_docker,20,10,10

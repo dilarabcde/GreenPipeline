@@ -1,0 +1,11 @@
+run,timestamp_utc,image,input_file,input_size_bytes,runtime_seconds
+1,2026-11-09T13:33:05.749610+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,1.2698
+2,2026-11-09T13:33:06.513033+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.7628
+3,2026-11-09T13:33:07.160264+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.6469
+4,2026-11-09T13:33:07.854463+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.6937
+5,2026-11-09T13:33:08.468392+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.6137
+6,2026-11-09T13:33:09.061389+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.5926
+7,2026-11-09T13:33:09.615494+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.5538
+8,2026-11-09T13:33:10.271643+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.6547
+9,2026-11-09T13:33:11.255542+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.9834
+10,2026-11-09T13:33:11.946188+00:00,greenpipeline-external:v1,owid_energy.csv,9081888,0.6904

@@ -2,7 +2,7 @@
 import subprocess
 import time
 from datetime import datetime, timedelta, timezone
-
+from pathlib import Path
 from database import connect, update_run
 
 
@@ -154,6 +154,7 @@ def record_deadline_result(run_id):
         db.close()
 
 
+
 def execute_job(job):
     run_id = job["run_id"]
     image = job["image"]
@@ -164,14 +165,45 @@ def execute_job(job):
     started = time.perf_counter()
 
     try:
+        allowed_images = {
+            "greenpipeline-worker:v1",
+            "greenpipeline-worker:v2",
+            "greenpipeline-external:v1"
+        }
+
+        if image not in allowed_images:
+            raise ValueError(f"Desteklenmeyen Docker imajı: {image}")
+
+        command = [
+            "docker", "run", "--rm",
+            "--name", container_name,
+            "--cpus", "0.5",
+            "--memory", "512m"
+        ]
+
+        # OWID görevine gerçek CSV dosyasını bağla
+        if image == "greenpipeline-external:v1":
+            input_dir = (
+                Path(__file__).resolve().parent
+                / "data" / "input"
+            )
+
+            input_file = input_dir / "owid_energy.csv"
+
+            if not input_file.is_file():
+                raise FileNotFoundError(
+                    f"OWID veri dosyası bulunamadı: {input_file}"
+                )
+
+            command.extend([
+                "--mount",
+                f"type=bind,source={input_dir},target=/input,readonly"
+            ])
+
+        command.append(image)
+
         process = subprocess.run(
-            [
-                "docker", "run", "--rm",
-                "--name", container_name,
-                "--cpus", "0.5",
-                "--memory", "512m",
-                image
-            ],
+            command,
             capture_output=True,
             text=True,
             timeout=60
@@ -191,6 +223,7 @@ def execute_job(job):
             error=process.stderr[-1000:]
             if process.returncode != 0 else None
         )
+
         record_deadline_result(run_id)
 
         print(process.stdout[-1000:])
@@ -198,7 +231,6 @@ def execute_job(job):
         print(f"Süre: {elapsed:.4f} saniye", flush=True)
 
     except Exception as error:
-        # Zaman aşımında geride kalan konteyneri temizle.
         subprocess.run(
             ["docker", "rm", "-f", container_name],
             capture_output=True,
@@ -211,7 +243,12 @@ def execute_job(job):
             error=str(error)
         )
 
-        print(f"Görev başarısız: {error}", flush=True)
+        record_deadline_result(run_id)
+
+        print(
+            f"Görev başarısız: {error}",
+            flush=True
+        )
 
 
 if __name__ == "__main__":

@@ -243,25 +243,47 @@ class ScheduleRequest(BaseModel):
     delay_seconds: int = Field(ge=5, le=300)
     deadline_seconds: int = Field(ge=1, le=600)
 
+
 @app.post("/jobs/schedule-local")
 def schedule_local(request: ScheduleRequest):
 
-    jobs = pd.read_csv("data/measured_jobs.csv")
-    matches = jobs[jobs["job_id"] == request.job_id]
+    # 103: Gercek OWID veri isleme gorevi
+    if request.job_id == 103:
+        try:
+            profile = pd.read_csv(
+                "data/benchmarks/owid_workload_profile.csv"
+            ).iloc[0]
+        except (FileNotFoundError, IndexError, pd.errors.EmptyDataError):
+            raise HTTPException(
+                status_code=404,
+                detail="OWID gorev profili bulunamadi"
+            )
 
-    if matches.empty:
-        raise HTTPException(404, "Görev bulunamadı")
+        image = str(profile["image"])
 
-    image = str(matches.iloc[0]["image"])
+    # Mevcut 101 ve 102 numarali gorevler
+    else:
+        jobs = pd.read_csv("data/measured_jobs.csv")
+        matches = jobs[jobs["job_id"] == request.job_id]
+
+        if matches.empty:
+            raise HTTPException(
+                status_code=404,
+                detail="Gorev bulunamadi"
+            )
+
+        image = str(matches.iloc[0]["image"])
 
     allowed_images = {
         "greenpipeline-worker:v1",
-        "greenpipeline-worker:v2"
+        "greenpipeline-worker:v2",
+        "greenpipeline-external:v1"
     }
 
     if image not in allowed_images:
         raise HTTPException(
-            400, "İzin verilmeyen Docker imajı"
+            status_code=400,
+            detail="Izin verilmeyen Docker imaji"
         )
 
     return queue_job(
@@ -270,3 +292,4 @@ def schedule_local(request: ScheduleRequest):
         request.delay_seconds,
         request.deadline_seconds
     )
+
