@@ -69,7 +69,15 @@ def estimate_emissions(job, region, start, carbon_data):
     return total_grams
 
 
-def schedule_job(job, carbon_data, max_cost_usd=MAX_COST_USD):
+
+def schedule_job(
+    job,
+    carbon_data,
+    max_cost_usd=MAX_COST_USD,
+    strategy="carbon",
+    extra_cost_usd=0.02
+):
+
     arrival = pd.to_datetime(job["arrival_time"], utc=True)
     deadline = pd.to_datetime(job["deadline"], utc=True)
 
@@ -121,14 +129,41 @@ def schedule_job(job, carbon_data, max_cost_usd=MAX_COST_USD):
                 "transfer_min": transfer
             })
 
+
     if not candidates:
         return None
 
-    # Önce minimum karbon, eşitlikte minimum maliyet
-    return min(
-        candidates,
-        key=lambda x: (x["carbon_g"], x["cost_usd"])
-    )
+    if strategy == "carbon":
+        return min(
+            candidates,
+            key=lambda x: (x["carbon_g"], x["cost_usd"])
+        )
+
+    elif strategy == "cost":
+        return min(
+            candidates,
+            key=lambda x: (x["cost_usd"], x["carbon_g"])
+        )
+
+    elif strategy == "balanced":
+        if extra_cost_usd < 0:
+            raise ValueError("Ek maliyet negatif olamaz.")
+
+        min_cost = min(c["cost_usd"] for c in candidates)
+        allowed_cost = min_cost + extra_cost_usd
+
+        balanced_candidates = [
+            c for c in candidates
+            if c["cost_usd"] <= allowed_cost + 1e-12
+        ]
+
+        return min(
+            balanced_candidates,
+            key=lambda x: (x["carbon_g"], x["cost_usd"])
+        )
+
+    else:
+        raise ValueError(f"Bilinmeyen strateji: {strategy}")
 
 
 carbon_data = load_carbon_data()
