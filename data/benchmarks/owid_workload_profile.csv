@@ -1,2 +1,2 @@
-workload,image,input_file,input_size_bytes,estimated_runtime_seconds,duration_min,prediction_method,measurement_source,training_samples,test_samples,test_successful
-owid_energy_processing,greenpipeline-external:v1,owid_energy.csv,9081888,0.8117,0.01352858333333334,P95,local_docker,20,10,10
+workload,image,input_file,input_size_bytes,estimated_runtime_seconds,duration_min,prediction_method,measurement_source,training_samples,test_samples,test_successful,cpu_limit,memory_limit_mb,safety_margin_pct,planning_runtime_seconds
+owid_energy_processing,greenpipeline-external:v1,owid_energy.csv,9081888,0.9609,0.016015416666666667,P95,local_docker,20,10,9,0.5,512,50,1.4414

@@ -261,6 +261,25 @@ def schedule_local(request: ScheduleRequest):
 
         image = str(profile["image"])
 
+        planning_seconds = float(
+            profile["planning_runtime_seconds"]
+        )
+
+        required_seconds = (
+            request.delay_seconds + planning_seconds
+        )
+
+        if required_seconds > request.deadline_seconds:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Deadline yetersiz! "
+                    f"Gerekli sure: {required_seconds:.4f} saniye, "
+                    f"izin verilen: {request.deadline_seconds} saniye."
+                )
+            )
+
+
     # Mevcut 101 ve 102 numarali gorevler
     else:
         jobs = pd.read_csv("data/measured_jobs.csv")

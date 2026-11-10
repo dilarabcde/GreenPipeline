@@ -9,10 +9,10 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parent
 
 INPUT_FILE = ROOT / "data/input/owid_energy.csv"
-OUTPUT_FILE = ROOT / "data/benchmarks/real_docker_runtime_30.csv"
+OUTPUT_FILE = ROOT / "data/benchmarks/real_docker_runtime_validation.csv"
 
 IMAGE = "greenpipeline-external:v1"
-REPETITIONS = 30
+REPETITIONS = 20
 
 if not INPUT_FILE.exists():
     raise SystemExit(
@@ -29,6 +29,8 @@ for run_number in range(1, REPETITIONS + 1):
 
     command = [
         "docker", "run", "--rm",
+        "--cpus", "0.5",
+        "--memory", "512m",
         "--mount",
         f"type=bind,source={INPUT_FILE.parent},target=/input,readonly",
         IMAGE

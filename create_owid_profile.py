@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Gercek Docker olcumleri
 measurements = pd.read_csv(
-    "data/benchmarks/real_docker_runtime_30.csv"
+    "data/benchmarks/real_docker_runtime_limited.csv"
 )
 
 input_file = Path("data/input/owid_energy.csv")
@@ -28,7 +28,11 @@ profile = {
     "measurement_source": "local_docker",
     "training_samples": len(train),
     "test_samples": len(test),
-    "test_successful": int((test <= p95).sum())
+    "test_successful": int((test <= p95).sum()),
+    "cpu_limit": 0.5,
+    "memory_limit_mb": 512,
+    "safety_margin_pct": 50,
+    "planning_runtime_seconds": round(p95 * 1.50, 4)
 }
 
 df = pd.DataFrame([profile])
