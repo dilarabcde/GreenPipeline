@@ -20,12 +20,21 @@ def prepare_database():
             for row in db.execute("PRAGMA table_info(job_runs)")
         }
 
+
         new_columns = {
             "scheduled_at": "TEXT",
             "deadline_at": "TEXT",
             "deadline_met": "INTEGER",
-            "lateness_seconds": "REAL"
+            "lateness_seconds": "REAL",
+
+            # Tarihsel Balanced planlama sonuçları
+            "simulated_region": "TEXT",
+            "simulated_start_at": "TEXT",
+            "simulated_cost_usd": "REAL",
+            "simulated_carbon_g": "REAL",
+            "planning_strategy": "TEXT"
         }
+
 
         with db:
             for name, column_type in new_columns.items():
@@ -83,6 +92,38 @@ def queue_job(job_id, image, delay_seconds, deadline_seconds):
         "deadline_at": deadline_at,
         "environment": "local_docker"
     }
+
+def save_simulated_plan(run_id, plan, strategy="balanced"):
+    db = connect()
+
+    try:
+        with db:
+            cursor = db.execute(
+                """
+                UPDATE job_runs
+                SET simulated_region = ?,
+                    simulated_start_at = ?,
+                    simulated_cost_usd = ?,
+                    simulated_carbon_g = ?,
+                    planning_strategy = ?
+                WHERE run_id = ?
+                """,
+                (
+                    plan["region"],
+                    plan["start"].isoformat(),
+                    float(plan["cost_usd"]),
+                    float(plan["carbon_g"]),
+                    strategy,
+                    run_id
+                )
+            )
+
+            if cursor.rowcount != 1:
+                raise ValueError(
+                    f"Çalıştırma kaydı bulunamadı: {run_id}"
+                )
+    finally:
+        db.close()
 
 
 def claim_due_job():

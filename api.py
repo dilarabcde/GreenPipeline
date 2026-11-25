@@ -236,7 +236,10 @@ def read_run(run_id: int):
 
 
 from pydantic import Field
-from local_scheduler import queue_job
+
+from local_scheduler import queue_job, save_simulated_plan
+from decision_engine import schedule_job, carbon_data
+
 
 class ScheduleRequest(BaseModel):
     job_id: int
@@ -312,3 +315,134 @@ def schedule_local(request: ScheduleRequest):
         request.deadline_seconds
     )
 
+@app.get("/jobs/plan-balanced/{job_id}")
+def plan_balanced(job_id: int):
+    jobs = pd.read_csv("data/jobs_stress_fargate.csv")
+
+    matches = jobs[jobs["job_id"] == job_id]
+
+    if matches.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="Görev bulunamadı"
+        )
+
+    job = matches.iloc[0]
+
+    plan = schedule_job(
+        job,
+        carbon_data,
+        strategy="balanced",
+        extra_cost_usd=0.02
+    )
+
+    if plan is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Deadline ve bütçeye uygun plan bulunamadı"
+        )
+
+    return {
+        "job_id": job_id,
+        "strategy": "balanced",
+        "planning_mode": "historical_simulation",
+        "selected_region": plan["region"],
+        "planned_start": plan["start"].isoformat(),
+        "planned_finish": plan["finish"].isoformat(),
+        "estimated_cost_usd": float(plan["cost_usd"]),
+        "estimated_carbon_g": float(plan["carbon_g"]),
+        "transfer_minutes": float(plan["transfer_min"])
+
+    }
+
+@app.post("/jobs/plan-and-schedule-local")
+def plan_and_schedule_local(request: ScheduleRequest):
+
+    jobs = pd.read_csv("data/measured_jobs.csv")
+    matches = jobs[jobs["job_id"] == request.job_id]
+
+    if matches.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="Gerçek Docker görevi bulunamadı"
+        )
+
+    job = matches.iloc[0]
+
+    # 1. Balanced algoritmasıyla tarihsel plan oluştur
+    plan = schedule_job(
+        job,
+        carbon_data,
+        strategy="balanced",
+        extra_cost_usd=0.02
+    )
+
+    if plan is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Uygun Balanced planı bulunamadı"
+        )
+
+
+    # Tarihsel modeldeki tahmini çalışma süresi
+    planning_seconds = float(job["duration_min"]) * 60
+
+    # Yerel Docker'da daha önce ölçülen süreleri kullan
+    from database import connect
+
+    db = connect()
+    try:
+        row = db.execute(
+            """
+            SELECT MAX(actual_runtime_seconds)
+            FROM job_runs
+            WHERE image = ?
+              AND status = 'Completed'
+              AND actual_runtime_seconds IS NOT NULL
+            """,
+            (str(job["image"]),)
+        ).fetchone()
+    finally:
+        db.close()
+
+    # Ölçülen maksimum süreye %25 güvenlik payı
+    if row and row[0] is not None:
+        measured_estimate = float(row[0]) * 1.25
+        planning_seconds = max(
+            planning_seconds,
+            measured_estimate
+        )
+
+
+    required_seconds = request.delay_seconds + planning_seconds
+
+    if required_seconds > request.deadline_seconds:
+        raise HTTPException(
+            status_code=422,
+            detail="Yerel Docker görevi deadline'a yetişemiyor"
+        )
+
+    # 3. Gerçek Docker görevini kuyruğa ekle
+    result = queue_job(
+        request.job_id,
+        str(job["image"]),
+        request.delay_seconds,
+        request.deadline_seconds
+    )
+
+    # 4. Balanced simülasyon sonucunu aynı kayda ekle
+    save_simulated_plan(
+        result["run_id"],
+        plan,
+        strategy="balanced"
+    )
+
+    return {
+        **result,
+        "planning_mode": "historical_simulation",
+        "simulated_region": plan["region"],
+        "simulated_start_at": plan["start"].isoformat(),
+        "simulated_cost_usd": float(plan["cost_usd"]),
+        "simulated_carbon_g": float(plan["carbon_g"]),
+        "planning_strategy": "balanced"
+    }
